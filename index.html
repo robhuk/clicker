@@ -38,6 +38,18 @@ h2{font-size:18px;margin:0}
 .fill{height:100%;background:var(--xc);border-radius:20px;width:0;transition:width .12s}
 .warning{display:none;background:#b42318;color:#fff;text-align:center;padding:11px;border-radius:10px;font-weight:850;margin-top:12px}
 .warning.show{display:block}
+.card.capacity-green{border:2px solid #238636}
+.card.capacity-amber{border:2px solid #D97706}
+.card.capacity-red{border:2px solid #B42318}
+.pill.capacity-green{background:#DCFCE7;color:#166534}
+.pill.capacity-amber{background:#FEF3C7;color:#92400E}
+.pill.capacity-red{background:#FEE2E2;color:#991B1B}
+.count.capacity-green{color:#16803D}
+.count.capacity-amber{color:#B45309}
+.count.capacity-red{color:#B42318}
+.status.capacity-green{background:#DCFCE7;color:#166534}
+.status.capacity-amber{background:#FEF3C7;color:#92400E}
+.status.capacity-red{background:#B42318;color:#fff}
 .totalbox{background:#f5e6eb;border-radius:12px;text-align:center;padding:13px}
 .totalbox .label{font-size:12px;letter-spacing:.06em;font-weight:800;color:#6c1835}
 .totalnum{font-size:40px;font-weight:850;line-height:1.2;color:var(--xc);font-variant-numeric:tabular-nums}
@@ -65,7 +77,7 @@ h2{font-size:18px;margin:0}
 </div>
 <label for="headcode">HEADCODE</label><input id="headcode" maxlength="4" placeholder="e.g. 1V50" autocomplete="off" spellcheck="false">
 </section>
-<section class="card" aria-labelledby="firsttitle">
+<section class="card" id="firstcard" aria-labelledby="firsttitle">
 <div class="classhead"><h2 id="firsttitle">First Class</h2><span class="pill" id="firstpill">0 / 26 seats</span></div>
 <div class="count" id="firstcount" aria-live="polite">0</div><div class="sub">Passengers counted</div>
 <div class="controls">
@@ -75,7 +87,7 @@ h2{font-size:18px;margin:0}
 <div class="seats"><span>Free seats</span><strong id="firstfree">26</strong></div><div class="bar"><div class="fill" id="firstbar"></div></div>
 <div class="warning" id="firstwarn">⚠ FULL AND STANDING</div>
 </section>
-<section class="card" aria-labelledby="standardtitle">
+<section class="card" id="standardcard" aria-labelledby="standardtitle">
 <div class="classhead"><h2 id="standardtitle">Standard Class</h2><span class="pill" id="standardpill">0 / 186 seats</span></div>
 <div class="count" id="standardcount" aria-live="polite">0</div><div class="sub">Passengers counted</div>
 <div class="controls">
@@ -109,7 +121,12 @@ let unit=4,first=0,standard=0;
 const capacity=()=>unit===4?186:246;
 function render(){
  const fc=26,sc=capacity(),total=first+standard,overF=first>fc,overS=standard>sc;
+ const levelF=first>fc?'red':first>=Math.ceil(fc*.8)?'amber':'green';
+ const levelS=standard>sc?'red':standard>=Math.ceil(sc*.8)?'amber':'green';
  $('firstcount').textContent=first;$('standardcount').textContent=standard;$('total').textContent=total;
+ $('firstcard').className='card capacity-'+levelF;$('standardcard').className='card capacity-'+levelS;
+ $('firstcount').className='count capacity-'+levelF;$('standardcount').className='count capacity-'+levelS;
+ $('firstpill').className='pill capacity-'+levelF;$('standardpill').className='pill capacity-'+levelS;
  $('firstpill').textContent=`${first} / ${fc} seats`;$('standardpill').textContent=`${standard} / ${sc} seats`;
  $('firstfree').textContent=Math.max(0,fc-first);$('standardfree').textContent=Math.max(0,sc-standard);
  $('sumfirst').textContent=Math.max(0,fc-first);$('sumstandard').textContent=Math.max(0,sc-standard);
@@ -117,8 +134,12 @@ function render(){
  $('firstbar').style.background=overF?'#b42318':'#A50034';$('standardbar').style.background=overS?'#b42318':'#A50034';
  $('firstwarn').classList.toggle('show',overF);$('standardwarn').classList.toggle('show',overS);
  $('firstfree').style.color=overF?'#b42318':'#18794e';$('standardfree').style.color=overS?'#b42318':'#18794e';
- $('status').classList.toggle('over',overF||overS);
- $('status').textContent=overF||overS?'⚠ FULL AND STANDING':'✓ Within seating capacity';
+ $('status').className='status capacity-'+(overF||overS?'red':(levelF==='amber'||levelS==='amber'?'amber':'green'));
+ if(overF&&overS){$('status').textContent='🔴 Whole Train Full and standing'}
+ else if(overF){$('status').textContent='🔴 First Full - Standard Class Ok'}
+ else if(overS){$('status').textContent='🔴 First Class Ok - Standard Full'}
+ else if(levelF==='amber'||levelS==='amber'){$('status').textContent='🟠 Approaching seating capacity'}
+ else{$('status').textContent='🟢 Both classes within seating capacity'}
  $('unit4').classList.toggle('active',unit===4);$('unit5').classList.toggle('active',unit===5);
  $('unit4').setAttribute('aria-pressed',String(unit===4));$('unit5').setAttribute('aria-pressed',String(unit===5));
 }
