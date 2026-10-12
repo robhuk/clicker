@@ -1,9 +1,9 @@
 {
-  "id": "./?app=xc-tally-counter",
+  "id": "./?app=xc-tally-counter-rh-20261012",
   "name": "XC Tally Counter",
   "short_name": "XC Tally",
   "description": "CrossCountry passenger tally counter",
-  "start_url": "./?app=xc-tally-counter",
+  "start_url": "./?app=xc-tally-counter-rh-20261012",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

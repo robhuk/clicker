@@ -55,7 +55,7 @@ h2{font-size:18px;margin:0}
 </style>
 </head>
 <body>
-<header><div class="logo" aria-hidden="true">XC</div><div><h1>XC Tally Counter</h1><p>Passenger counting tool</p></div></header>
+<header><div class="logo" aria-hidden="true">XC</div><div style="flex:1;min-width:0"><h1>XC Tally Counter</h1><p>Passenger counting tool</p></div><button id="install" type="button" style="display:none;border:0;border-radius:10px;background:#F6C445;color:#332600;font:700 13px system-ui;padding:10px 12px;white-space:nowrap">＋ Install</button></header>
 <main>
 <section class="card">
 <p class="eyebrow">UNIT CONFIGURATION</p>
@@ -128,12 +128,41 @@ $('unit5').addEventListener('click',()=>{unit=5;render()});
 $('firstplus').addEventListener('click',()=>change('first',1));$('firstminus').addEventListener('click',()=>change('first',-1));
 $('standardplus').addEventListener('click',()=>change('standard',1));$('standardminus').addEventListener('click',()=>change('standard',-1));
 $('headcode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^0-9A-Z]/g,'').slice(0,4)});
-$('reset').addEventListener('click',()=>{first=0;standard=0;$('headcode').value='';$('toast').textContent='';render()});
+$('reset').addEventListener('click',()=>{if(!window.confirm('Reset the current passenger count? This will clear the headcode and both class counts.'))return;first=0;standard=0;$('headcode').value='';$('toast').textContent='';$('savednotice').textContent='';try{localStorage.removeItem(STORAGE_KEY)}catch(e){}render()});
 $('copy').addEventListener('click',async()=>{
  const f=26,s=capacity(),hc=$('headcode').value||'Not entered';
  const text=`XC TALLY COUNTER\nHeadcode: ${hc}\nUnit: ${unit} car\nFirst Class: ${first}/${f} (${Math.max(0,f-first)} free seats)\nStandard Class: ${standard}/${s} (${Math.max(0,s-standard)} free seats)\nTOTAL PASSENGERS: ${first+standard}\nStatus: ${first>f||standard>s?'FULL AND STANDING':'Within seating capacity'}`;
  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text)}else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw Error('copy failed')} $('toast').textContent='Summary copied to clipboard.'}
  catch(e){$('toast').textContent='Clipboard unavailable. Please use your browser copy options.'}
+});
+let deferredInstallPrompt=null;
+const installButton=$('install');
+function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true}
+function updateInstallButton(){
+ if(isStandalone()){installButton.style.display='none';return}
+ installButton.style.display=deferredInstallPrompt?'block':'none';
+}
+window.addEventListener('beforeinstallprompt',event=>{
+ event.preventDefault();
+ deferredInstallPrompt=event;
+ updateInstallButton();
+});
+window.addEventListener('appinstalled',()=>{
+ deferredInstallPrompt=null;
+ installButton.style.display='none';
+ $('toast').textContent='XC Tally Counter installed.';
+});
+installButton.addEventListener('click',async()=>{
+ if(deferredInstallPrompt){
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  updateInstallButton();
+ }else{
+  $('toast').textContent=/iphone|ipad|ipod/i.test(navigator.userAgent)
+   ? 'To install: tap Share, then Add to Home Screen.'
+   : 'To install, open your browser menu and choose Install app or Add to Home screen.';
+ }
 });
 const STORAGE_KEY='xc-tally-counter-current-v1';
 function saveCurrent(){
@@ -159,6 +188,7 @@ $('save').addEventListener('click',saveCurrent);
 restoreCurrent();
 render();
 if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+updateInstallButton();
 })();
 </script>
 </body></html>

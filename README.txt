@@ -18,3 +18,9 @@ Capacity logic:
 - Standard Class: 186 on 4-car, 246 on 5-car.
 - FULL AND STANDING appears when either class count EXCEEDS its seating capacity.
 - Counts are in-memory for the current app session; use Copy summary before resetting or closing if you need a record.
+
+
+Unique installation identity:
+- PWA manifest ID: ./?app=xc-tally-counter-rh-20261012
+- Service worker cache: xc-tally-counter-rh-20261012-v1
+These distinguish this app from other PWAs when hosted at a distinct path/origin.
