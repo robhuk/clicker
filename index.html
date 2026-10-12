@@ -94,10 +94,12 @@ h2{font-size:18px;margin:0}
 </div>
 <div class="status" id="status" aria-live="polite">✓ Within seating capacity</div>
 <div class="actions">
-<button class="action primary" id="copy" type="button">▣ Copy summary</button>
+<button class="action primary" id="save" type="button">💾 Save count</button>
+<button class="action" id="copy" type="button">▣ Copy summary</button>
 <button class="action" id="reset" type="button">↻ Reset</button>
 </div>
 <div class="toast" id="toast" aria-live="polite"></div>
+<div id="savednotice" style="font-size:12px;color:#555;text-align:center;margin-top:5px"></div>
 </section>
 </main>
 <script>
@@ -133,6 +135,28 @@ $('copy').addEventListener('click',async()=>{
  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text)}else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw Error('copy failed')} $('toast').textContent='Summary copied to clipboard.'}
  catch(e){$('toast').textContent='Clipboard unavailable. Please use your browser copy options.'}
 });
+const STORAGE_KEY='xc-tally-counter-current-v1';
+function saveCurrent(){
+ const data={unit,first,standard,headcode:$('headcode').value,savedAt:new Date().toISOString()};
+ try{
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+  $('toast').textContent='Current count saved on this device.';
+  $('savednotice').textContent='Saved locally · '+new Date(data.savedAt).toLocaleString();
+ }catch(e){$('toast').textContent='Unable to save on this device.'}
+}
+function restoreCurrent(){
+ try{
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw)return;
+  const data=JSON.parse(raw);
+  if(!data||![4,5].includes(data.unit)||!Number.isInteger(data.first)||!Number.isInteger(data.standard))return;
+  unit=data.unit;first=Math.max(0,data.first);standard=Math.max(0,data.standard);
+  $('headcode').value=String(data.headcode||'').slice(0,4).toUpperCase();
+  $('savednotice').textContent='Saved count restored from this device'+(data.savedAt?' · '+new Date(data.savedAt).toLocaleString():'');
+ }catch(e){}
+}
+$('save').addEventListener('click',saveCurrent);
+restoreCurrent();
 render();
 if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
