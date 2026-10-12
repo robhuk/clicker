@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#A50034">
+<meta name="description" content="CrossCountry passenger tally counter">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>XC Tally Counter</title>
+<style>
+:root{--xc:#A50034;--gold:#F6C445;--bg:#f1f2f4;--ink:#242424;--green:#18794e;--red:#b42318}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}
+header{background:var(--xc);color:#fff;padding:16px 16px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #0002}
+.logo{width:46px;height:46px;background:white;color:var(--xc);border-radius:12px;display:grid;place-items:center;font-size:23px;font-weight:900;flex-shrink:0}
+h1{font-size:21px;line-height:1.15;margin:0}header p{font-size:13px;margin:4px 0 0;opacity:.9}
+main{max-width:620px;margin:auto;padding:12px;display:grid;gap:12px}
+.card{background:white;border-radius:16px;padding:15px;box-shadow:0 1px 4px #0000000a}
+.eyebrow{font-size:12px;letter-spacing:.06em;font-weight:750;color:#626262;margin:0 0 10px}
+.unitrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.unitbtn{border:2px solid #ddd;background:#fff;border-radius:11px;padding:12px;font-size:16px;font-weight:750;color:var(--ink)}
+.unitbtn.active{background:var(--xc);border-color:var(--xc);color:white}
+label{display:block;font-size:13px;font-weight:700;margin:13px 0 6px}
+input{width:100%;min-height:45px;border:1px solid #c8c8c8;border-radius:10px;padding:10px 12px;font:inherit;text-transform:uppercase}
+.classhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h2{font-size:18px;margin:0}
+.pill{font-size:12px;font-weight:750;padding:6px 9px;border-radius:999px;background:#eee;white-space:nowrap}
+.count{font-size:48px;font-weight:800;line-height:1.1;text-align:center;color:var(--xc);font-variant-numeric:tabular-nums;margin:12px 0 3px}
+.sub{text-align:center;font-size:12px;color:#666}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.countbtn{height:70px;border:0;border-radius:14px;font-size:18px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;touch-action:manipulation}
+.countbtn span{font-size:30px;line-height:1}
+.minus{background:#e8e9ec;color:#242424}.plus{background:var(--xc);color:white}
+.seats{display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:#555}
+.seats strong{font-size:22px;color:var(--green)}
+.bar{height:8px;background:#e8e8e8;border-radius:20px;overflow:hidden;margin-top:7px}
+.fill{height:100%;background:var(--xc);border-radius:20px;width:0;transition:width .12s}
+.warning{display:none;background:#b42318;color:#fff;text-align:center;padding:11px;border-radius:10px;font-weight:850;margin-top:12px}
+.warning.show{display:block}
+.totalbox{background:#f5e6eb;border-radius:12px;text-align:center;padding:13px}
+.totalbox .label{font-size:12px;letter-spacing:.06em;font-weight:800;color:#6c1835}
+.totalnum{font-size:40px;font-weight:850;line-height:1.2;color:var(--xc);font-variant-numeric:tabular-nums}
+.summarygrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.summarycell{border:1px solid #ddd;border-radius:11px;padding:11px}
+.summarycell small{display:block;color:#555;font-size:12px}
+.summarycell strong{display:block;font-size:24px;margin-top:3px}
+.status{margin-top:10px;padding:11px;border-radius:10px;text-align:center;font-weight:750;background:#e3f3e8;color:var(--green)}
+.status.over{background:#b42318;color:white}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.action{min-height:46px;border-radius:10px;border:1px solid #bbb;background:white;font:inherit;font-weight:750;color:#333}
+.action.primary{background:var(--gold);border-color:var(--gold);color:#332600}
+.toast{font-size:12px;text-align:center;color:var(--green);min-height:15px;margin-top:8px}
+@media(min-width:560px){main{padding:18px}.count{font-size:54px}.card{padding:18px}}
+</style>
+</head>
+<body>
+<header><div class="logo" aria-hidden="true">XC</div><div><h1>XC Tally Counter</h1><p>Passenger counting tool</p></div></header>
+<main>
+<section class="card">
+<p class="eyebrow">UNIT CONFIGURATION</p>
+<div class="unitrow" role="group" aria-label="Select unit">
+<button class="unitbtn active" id="unit4" type="button" aria-pressed="true">4 Car</button>
+<button class="unitbtn" id="unit5" type="button" aria-pressed="false">5 Car</button>
+</div>
+<label for="headcode">HEADCODE</label><input id="headcode" maxlength="4" placeholder="e.g. 1V50" autocomplete="off" spellcheck="false">
+</section>
+<section class="card" aria-labelledby="firsttitle">
+<div class="classhead"><h2 id="firsttitle">First Class</h2><span class="pill" id="firstpill">0 / 26 seats</span></div>
+<div class="count" id="firstcount" aria-live="polite">0</div><div class="sub">Passengers counted</div>
+<div class="controls">
+<button class="countbtn minus" id="firstminus" type="button" aria-label="Remove one First Class passenger"><span>−</span>−1</button>
+<button class="countbtn plus" id="firstplus" type="button" aria-label="Add one First Class passenger"><span>+</span>+1</button>
+</div>
+<div class="seats"><span>Free seats</span><strong id="firstfree">26</strong></div><div class="bar"><div class="fill" id="firstbar"></div></div>
+<div class="warning" id="firstwarn">⚠ FULL AND STANDING</div>
+</section>
+<section class="card" aria-labelledby="standardtitle">
+<div class="classhead"><h2 id="standardtitle">Standard Class</h2><span class="pill" id="standardpill">0 / 186 seats</span></div>
+<div class="count" id="standardcount" aria-live="polite">0</div><div class="sub">Passengers counted</div>
+<div class="controls">
+<button class="countbtn minus" id="standardminus" type="button" aria-label="Remove one Standard Class passenger"><span>−</span>−1</button>
+<button class="countbtn plus" id="standardplus" type="button" aria-label="Add one Standard Class passenger"><span>+</span>+1</button>
+</div>
+<div class="seats"><span>Free seats</span><strong id="standardfree">186</strong></div><div class="bar"><div class="fill" id="standardbar"></div></div>
+<div class="warning" id="standardwarn">⚠ FULL AND STANDING</div>
+</section>
+<section class="card">
+<p class="eyebrow">PASSENGER SUMMARY</p>
+<div class="totalbox"><div class="label">TOTAL PASSENGERS</div><div class="totalnum" id="total">0</div></div>
+<div class="summarygrid">
+<div class="summarycell"><small>First Class free seats</small><strong id="sumfirst">26</strong></div>
+<div class="summarycell"><small>Standard free seats</small><strong id="sumstandard">186</strong></div>
+</div>
+<div class="status" id="status" aria-live="polite">✓ Within seating capacity</div>
+<div class="actions">
+<button class="action primary" id="copy" type="button">▣ Copy summary</button>
+<button class="action" id="reset" type="button">↻ Reset</button>
+</div>
+<div class="toast" id="toast" aria-live="polite"></div>
+</section>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let unit=4,first=0,standard=0;
+const capacity=()=>unit===4?186:246;
+function render(){
+ const fc=26,sc=capacity(),total=first+standard,overF=first>fc,overS=standard>sc;
+ $('firstcount').textContent=first;$('standardcount').textContent=standard;$('total').textContent=total;
+ $('firstpill').textContent=`${first} / ${fc} seats`;$('standardpill').textContent=`${standard} / ${sc} seats`;
+ $('firstfree').textContent=Math.max(0,fc-first);$('standardfree').textContent=Math.max(0,sc-standard);
+ $('sumfirst').textContent=Math.max(0,fc-first);$('sumstandard').textContent=Math.max(0,sc-standard);
+ $('firstbar').style.width=Math.min(100,first/fc*100)+'%';$('standardbar').style.width=Math.min(100,standard/sc*100)+'%';
+ $('firstbar').style.background=overF?'#b42318':'#A50034';$('standardbar').style.background=overS?'#b42318':'#A50034';
+ $('firstwarn').classList.toggle('show',overF);$('standardwarn').classList.toggle('show',overS);
+ $('firstfree').style.color=overF?'#b42318':'#18794e';$('standardfree').style.color=overS?'#b42318':'#18794e';
+ $('status').classList.toggle('over',overF||overS);
+ $('status').textContent=overF||overS?'⚠ FULL AND STANDING':'✓ Within seating capacity';
+ $('unit4').classList.toggle('active',unit===4);$('unit5').classList.toggle('active',unit===5);
+ $('unit4').setAttribute('aria-pressed',String(unit===4));$('unit5').setAttribute('aria-pressed',String(unit===5));
+}
+function change(which,delta){if(which==='first')first=Math.max(0,first+delta);else standard=Math.max(0,standard+delta);render();$('toast').textContent='';}
+$('unit4').addEventListener('click',()=>{unit=4;render()});
+$('unit5').addEventListener('click',()=>{unit=5;render()});
+$('firstplus').addEventListener('click',()=>change('first',1));$('firstminus').addEventListener('click',()=>change('first',-1));
+$('standardplus').addEventListener('click',()=>change('standard',1));$('standardminus').addEventListener('click',()=>change('standard',-1));
+$('headcode').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^0-9A-Z]/g,'').slice(0,4)});
+$('reset').addEventListener('click',()=>{first=0;standard=0;$('headcode').value='';$('toast').textContent='';render()});
+$('copy').addEventListener('click',async()=>{
+ const f=26,s=capacity(),hc=$('headcode').value||'Not entered';
+ const text=`XC TALLY COUNTER\nHeadcode: ${hc}\nUnit: ${unit} car\nFirst Class: ${first}/${f} (${Math.max(0,f-first)} free seats)\nStandard Class: ${standard}/${s} (${Math.max(0,s-standard)} free seats)\nTOTAL PASSENGERS: ${first+standard}\nStatus: ${first>f||standard>s?'FULL AND STANDING':'Within seating capacity'}`;
+ try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text)}else{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();if(!ok)throw Error('copy failed')} $('toast').textContent='Summary copied to clipboard.'}
+ catch(e){$('toast').textContent='Clipboard unavailable. Please use your browser copy options.'}
+});
+render();
+if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+})();
+</script>
+</body></html>
